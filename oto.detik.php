@@ -43,8 +43,10 @@ foreach ($link as $key => $val) {
 
 	foreach($content->find('div.content_detail') as $detail){
 
-		foreach($detail->find('div.text_detail') as $text)
-			$arrText = array('text' => strip_tags($text->innertext) );
+		foreach($detail->find('div.text_detail') as $text){
+			$path    = explode(". ", strip_tags($text->innertext));
+			$arrText = array('text' => implode(".<p></p>", $path) );
+		}
 
 		$arrImage  = $detail->find('div.pic_artikel');
 		$arrImage2 = $detail->find('div.pic_artikel_2');
