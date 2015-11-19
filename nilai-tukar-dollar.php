@@ -1,6 +1,6 @@
 <?php
 
-$url = 'http://www.klikbca.com/';
+$url = 'http://www.bca.co.id/id/kurs-sukubunga/kurs_counter_bca/kurs_counter_bca_landing.jsp';
 
 if(! function_exists("curl_init")):
 	die('CURL tidak ada, setting di php.ini anda');
@@ -22,35 +22,44 @@ $dom = new DOMDocument;
 //load HTML hasil CURL
 $dom->loadHTML($content);
 
+//echo '<pre>';
+//echo $dom->getElementsByTagName( 'table' )->item(1)->getElementsByTagName('tr')->item(1)->getElementsByTagName('td')->item(0)->nodeValue;
 //lakukan looping
 $row = array();
-foreach( $dom->getElementsByTagName( 'tr' ) as $tr):
-
+foreach ($dom->getElementsByTagName( 'tbody' ) as $table) {
+	$i = 1;
 	$cells = array();
-	foreach($tr->getElementsByTagName( 'td' ) as $td):
-		
-		foreach($td->getElementsByTagName( 'td' ) as $t):
-			if($t->nodeValue > 0):
-			$cells[] = $t->nodeValue;
-			endif;
-		endforeach;
+	foreach( $table->getElementsByTagName( 'tr' ) as $tr):
+		if($tr->getElementsByTagName( 'td' )->item(0)->nodeValue > 0){
+			//echo $i;
+			$kurs = $dom->getElementsByTagName( 'table' )->item(1)->getElementsByTagName('tr')->item($i)->getElementsByTagName('td')->item(0)->nodeValue;
+			$cells = array(
+				'jual' => $tr->getElementsByTagName( 'td' )->item(0)->nodeValue,
+				'beli' => $tr->getElementsByTagName( 'td' )->item(1)->nodeValue
+			);
+			$row[$kurs] = $cells;
+			$i += 1;
+		}
 		
 	endforeach;
-	$row[] = $cells;
+	
+	break;
+}
 
-endforeach;
+$path   = "bca.json";
 
-//lihat hasil loopong
-//echo "<pre>";
-//print_r($row);
+$data['date'] = array('created_at' => date("Y-m-d H:i:s"));
 
-//$dom->loadHTML($row[0][9]);
+$data['data']   = $row;	
 
+$json = json_encode($data);
 
-//print_r($row[0][9]);
-
-echo "<h1>Bank BCA</h1>";
-
-echo "Harga Jual : Rp. ".$row[0][0];
-echo "<br />";
-echo "Harga Beli : Rp. ". $row[0][1];
+if ($json) {
+	if (file_put_contents($path, $json)) {
+		echo "copy ".$path." File success \n";
+	} else {
+		echo "copy ".$path." File failed \n";
+	}
+} else {
+	echo "get ".$json." File failed \n";
+}
